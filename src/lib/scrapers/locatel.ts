@@ -13,8 +13,9 @@ return items
         name: p.productName,
         brand: p.brand,
         normalized: p.productName.toLowerCase().trim(),
+        imageUrl: p.items?.[0]?.images?.[0]?.imageUrl ?? null,
         price: p.items?.[0]?.sellers?.[0]?.commertialOffer?.Price,
-        url: BASE + p.link,
+        url: new URL(p.link, BASE).toString(),
         available: p.items?.[0]?.sellers?.[0]?.commertialOffer?.AvailableQuantity > 0,
     }))
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -17,6 +17,7 @@ model Store {
   id       String    @id @default(uuid())
   name     String
   baseUrl  String
+  logoUrl  String?   
   products Product[]
 }
 
@@ -26,6 +27,7 @@ model Product {
   brand      String?
   category   String?
   normalized String?
+  imageUrl   String?  
   storeId    String
   store      Store    @relation(fields: [storeId], references: [id])
   prices     Price[]
