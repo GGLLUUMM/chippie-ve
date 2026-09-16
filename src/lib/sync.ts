@@ -4,7 +4,7 @@ import { fetchFarmatodo  } from './scrapers/farmatodo'
 
 const sources = [
   { id: 'locatel-ve', name: 'Locatel', baseUrl: 'https://www.locatel.com.ve', fetcher: fetchLocatel },
- // { id: 'farmatodo-ve', name: 'Farmatodo', baseUrl: 'https://www.farmatodo.com.ve', fetcher: fetchFarmatodo },
+  { id: 'farmatodo-ve', name: 'Farmatodo', baseUrl: 'https://www.farmatodo.com.ve', fetcher: fetchFarmatodo },
 ]
 
 export async function syncQuery(query: string) {
