@@ -29,6 +29,8 @@ model Product {
   storeId    String
   store      Store    @relation(fields: [storeId], references: [id])
   prices     Price[]
+
+  @@unique([normalized, storeId])
 }
 
 model Price {
