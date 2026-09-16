@@ -1,10 +1,10 @@
 import { prisma } from './prisma'
 import { fetchLocatel } from './scrapers/locatel'
-import { fetchML } from './scrapers/mercadolibre'
+import { fetchFarmatodo  } from './scrapers/farmatodo'
 
 const sources = [
   { id: 'locatel-ve', name: 'Locatel', baseUrl: 'https://www.locatel.com.ve', fetcher: fetchLocatel },
-  { id: 'mercadolibre-ve', name: 'Mercado Libre VE', baseUrl: 'https://www.mercadolibre.com.ve', fetcher: fetchML },
+ // { id: 'farmatodo-ve', name: 'Farmatodo', baseUrl: 'https://www.farmatodo.com.ve', fetcher: fetchFarmatodo },
 ]
 
 export async function syncQuery(query: string) {
