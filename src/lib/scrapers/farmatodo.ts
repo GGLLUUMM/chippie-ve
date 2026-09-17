@@ -3,7 +3,7 @@ import { chromium } from 'playwright'
 const BASE = 'https://www.farmatodo.com.ve'
 
 export async function fetchFarmatodo(query: string) {
-  const browser = await chromium.launch()
+  const browser = await chromium.launch({ channel: 'chrome' })
   const page = await browser.newPage()
 
   // Intentar capturar la respuesta JSON interna que la página le pide a su servidor
