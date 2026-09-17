@@ -2,6 +2,7 @@ import { prisma } from './prisma'
 import { fetchLocatel } from './scrapers/locatel'
 import { fetchFarmaciaSAAS } from './scrapers/farmaciassaas'
 import { fetchFarmago } from './scrapers/farmago'
+import { fetchGama } from './scrapers/gama'
 
 const sources = [
   {
@@ -25,6 +26,13 @@ const sources = [
     fetcher: fetchFarmago,
     currency: 'VES',
   },
+  {
+    id: 'gamaenlinea',
+    name: 'Gama en Línea',
+    baseUrl: 'https://gamaenlinea.com',
+    fetcher: fetchGama,
+    currency: 'VES',
+  }
 ] as const
 
 async function ensureFreshRate(): Promise<number> {

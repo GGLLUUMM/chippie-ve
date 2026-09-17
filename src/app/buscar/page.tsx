@@ -75,7 +75,7 @@ export default async function BuscarPage({
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-black via-emerald-950 to-emerald-900 text-white">
-      <div className="mx-auto max-w-3xl px-6 py-10">
+      <div className="mx-auto max-w-7xl px-6 py-10">
         <Link href="/" className="text-sm text-emerald-400">
           ← Volver al inicio
         </Link>
@@ -107,49 +107,38 @@ export default async function BuscarPage({
           </p>
         )}
 
-        <ul className="mt-6 space-y-3">
+        <ul className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
           {results.map((product) => {
             const price = product.price
 
             return (
               <li
                 key={product.id}
-                className="flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm"
+                className="flex min-h-[330px] flex-col rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
               >
                 {product.imageUrl ? (
                   <img
                     src={product.imageUrl}
                     alt={product.name}
-                    className="h-16 w-16 rounded-lg border bg-gray-50 object-contain"
+                    className="mb-4 h-40 w-full rounded-lg border bg-gray-50 object-contain"
                   />
                 ) : (
-                  <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-gray-100 text-2xl">
+                  <div className="mb-4 flex h-40 w-full items-center justify-center rounded-lg bg-gray-100 text-5xl">
                     📦
                   </div>
                 )}
 
-                <div className="flex-1">
-                  <p className="font-medium text-gray-900">
+                <div className="flex flex-1 flex-col">
+                  <p className="line-clamp-2 font-semibold text-gray-900">
                     {product.name}
                   </p>
 
-                  <p className="mt-1 flex items-center gap-2 text-sm text-gray-500">
-                    {product.store.logoUrl && (
-                      <img
-                        src={product.store.logoUrl}
-                        alt={product.store.name}
-                        className="h-4 w-auto"
-                      />
-                    )}
-
-                    {product.store.name} · actualizado{' '}
-                    {new Date(price.capturedAt).toLocaleString('es-VE')}
+                  <p className="mt-2 line-clamp-1 text-sm text-gray-500">
+                    {product.store.name}
                   </p>
-                </div>
 
-                <div className="text-right">
                   <p
-                    className="whitespace-nowrap text-lg font-bold"
+                    className="mt-3 text-xl font-bold"
                     style={{ color: getPriceColor(product.inVES) }}
                   >
                     Bs.{' '}
@@ -168,16 +157,21 @@ export default async function BuscarPage({
                       })}
                     </p>
                   )}
-                </div>
 
-                <a
-                  href={price.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="whitespace-nowrap rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-700"
-                >
-                  Comprar ↗
-                </a>
+                  <p className="mt-2 text-xs text-gray-400">
+                    Actualizado{' '}
+                    {new Date(price.capturedAt).toLocaleDateString('es-VE')}
+                  </p>
+
+                  <a
+                    href={price.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-auto rounded-lg bg-gray-900 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-gray-700"
+                  >
+                    Comprar ↗
+                  </a>
+                </div>
               </li>
             )
           })}
