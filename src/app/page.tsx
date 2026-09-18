@@ -8,38 +8,42 @@ const stores = [
   {
     name: 'Farmacias Saas',
     shortName: 'Saas',
-    color: '#0066CC',
-    bgGradient: 'from-blue-600 to-blue-800',
+    color: '#43B97F',
+    gradient: 'linear-gradient(135deg, #43B97FDD, #168F62AA)',
     icon: '💊',
+    logo: '/logos/farmaciassaas.png',
   },
   {
     name: 'Locatel',
     shortName: 'Locatel',
-    color: '#E60012',
-    bgGradient: 'from-red-600 to-red-800',
+    color: '#009B77',
+    gradient: 'linear-gradient(135deg, #009B77DD, #006B55AA)',
     icon: '🏪',
     logo: '/logos/locatel.png',
   },
   {
     name: 'Farma Go',
     shortName: 'Farma Go',
-    color: '#00A651',
-    bgGradient: 'from-green-600 to-green-800',
+    color: '#00CFE8',
+    gradient: 'linear-gradient(135deg, #00CFE8DD, #6D28D9CC)',
     icon: '🚀',
+    logo: '/logos/farmago.png',
   },
   {
     name: 'Gama en Línea',
     shortName: 'Gama',
-    color: '#F59E0B',
-    bgGradient: 'from-amber-500 to-orange-700',
+    color: '#9B111E',
+    gradient: 'linear-gradient(135deg, #B21F32DD, #720817CC)',
     icon: '🛒',
+    logo: '/logos/gama.png',
   },
   {
     name: 'Farmatodo',
     shortName: 'Farmatodo',
-    color: '#E11D48',
-    bgGradient: 'from-rose-600 to-red-800',
+    color: '#173B8F',
+    gradient: 'linear-gradient(135deg, #244DA8DD, #0B205CCC)',
     icon: '🧴',
+    logo: '/logos/farmatodo.png',
   },
 ]
 
@@ -131,7 +135,7 @@ function StoreCard({ pharmacy, index }: { pharmacy: typeof stores[0]; index: num
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay: index * 0.1, ease: 'easeOut' }}
     >
-      <div className="absolute inset-0 bg-gradient-to-br" style={{ background: `linear-gradient(135deg, ${pharmacy.color}AA, ${pharmacy.color}44)` }} />
+      <div className="absolute inset-0" style={{ background: pharmacy.gradient }} />
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
       
       {pharmacy.logo ? (

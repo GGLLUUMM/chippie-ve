@@ -3,6 +3,37 @@ import Image from 'next/image'
 import { prisma } from '@/lib/prisma'
 import { syncQuery } from '@/lib/sync'
 
+const storeThemes = {
+  'Farmacia SAAS': {
+    color: '#43B97F',
+    logo: '/logos/farmaciassaas.png',
+  },
+  Locatel: {
+    color: '#009B77',
+    logo: '/logos/locatel.png',
+  },
+  Farmago: {
+    color: '#6D28D9',
+    logo: '/logos/farmago.png',
+    gradient: 'linear-gradient(90deg, #00CFE8, #6D28D9)',
+  },
+  'Gama en Línea': {
+    color: '#9B111E',
+    logo: '/logos/gama.png',
+  },
+  Farmatodo: {
+    color: '#173B8F',
+    logo: '/logos/farmatodo.png',
+  },
+} as const
+
+function getStoreTheme(storeName: string) {
+  return storeThemes[storeName as keyof typeof storeThemes] ?? {
+    color: '#374151',
+    logo: null,
+  }
+}
+
 export default async function BuscarPage({
   searchParams,
 }: {
@@ -111,11 +142,13 @@ export default async function BuscarPage({
         <ul className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
           {results.map((product) => {
             const price = product.price
+            const storeTheme = getStoreTheme(product.store.name)
 
             return (
               <li
                 key={product.id}
-                className="flex min-h-[330px] flex-col rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+                className="flex min-h-[330px] flex-col rounded-xl border-2 bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+                style={{ borderColor: `${storeTheme.color}66` }}
               >
                 {product.imageUrl ? (
                   <div className="relative mb-4 h-40 w-full">
@@ -139,9 +172,32 @@ export default async function BuscarPage({
                     {product.name}
                   </p>
 
-                  <p className="mt-2 line-clamp-1 text-sm text-gray-500">
-                    {product.store.name}
-                  </p>
+                  <div className="mt-2 flex items-center gap-2">
+                    {storeTheme.logo && (
+                      <Image
+                        src={storeTheme.logo}
+                        alt=""
+                        width={28}
+                        height={28}
+                        className="h-7 w-7 rounded-full object-contain"
+                      />
+                    )}
+                    <p
+                      className="line-clamp-1 text-sm font-semibold"
+                      style={
+                        'gradient' in storeTheme
+                          ? {
+                              backgroundImage: storeTheme.gradient,
+                              backgroundClip: 'text',
+                              WebkitBackgroundClip: 'text',
+                              color: 'transparent',
+                            }
+                          : { color: storeTheme.color }
+                      }
+                    >
+                      {product.store.name}
+                    </p>
+                  </div>
 
                   <p
                     className="mt-3 text-xl font-bold"
