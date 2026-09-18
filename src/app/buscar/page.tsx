@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { prisma } from '@/lib/prisma'
 import { syncQuery } from '@/lib/sync'
 
@@ -117,11 +118,16 @@ export default async function BuscarPage({
                 className="flex min-h-[330px] flex-col rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
               >
                 {product.imageUrl ? (
-                  <img
-                    src={product.imageUrl}
-                    alt={product.name}
-                    className="mb-4 h-40 w-full rounded-lg border bg-gray-50 object-contain"
-                  />
+                  <div className="relative mb-4 h-40 w-full">
+                    <Image
+                      src={product.imageUrl}
+                      alt={product.name}
+                      fill
+                      unoptimized
+                      sizes="(max-width: 640px) 100vw, (max-width: 1280px) 33vw, 16vw"
+                      className="rounded-lg border bg-gray-50 object-contain"
+                    />
+                  </div>
                 ) : (
                   <div className="mb-4 flex h-40 w-full items-center justify-center rounded-lg bg-gray-100 text-5xl">
                     📦

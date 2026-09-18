@@ -1,82 +1,48 @@
-// gama.ts
-import * as cheerio from 'cheerio'
-
+const API =
+  'https://api.cl94ncbhsi-excelsior1-p1-public.model-t.cc.commerce.ondemand.com/occ/v2/egb2c-spa/products/search'
 const BASE = 'https://gamaenlinea.com'
 
+// Mismo patrón de fields que usa la propia página de Gama (simplificado)
+const FIELDS =
+  'products(code,name,seoName,url,summary,price(FULL),images(FULL),stock(FULL)),pagination(DEFAULT)'
+
 export async function fetchGama(query: string) {
-  const res = await fetch(
-    `${BASE}/es/search/${encodeURIComponent(query)}`,
-    {
-      headers: {
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
-          '(KHTML, like Gecko) Chrome/126.0 Safari/537.36',
-        'Accept-Language': 'es-VE,es;q=0.9',
-      },
-    }
-  )
-  if (!res.ok) throw new Error(`Gama error ${res.status}`)
-  const html = await res.text()
-  const $ = cheerio.load(html)
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const results: any[] = []
-
-  $('cx-product-grid-item').each((_, el) => {
-    const card = $(el)
-
-    // Nombre: hay que quitar el <em class="search-results-highlight"> interno
-    const nameEl = card.find('a.cx-product-name h3').first()
-    if (!nameEl.length) return
-    // clonamos para no mutar el DOM original
-    const nameClone = nameEl.clone()
-    nameClone.find('em').each((_, em) => {
-      // reemplazamos el <em> por su texto
-      const $em = nameClone.find('em').first()
-      $em.replaceWith($em.text())
-    })
-    const name = nameClone.text().trim().replace(/\s+/g, ' ')
-
-    // Precio: " Total Ref. 1,52 " → 1.52
-    const priceText = card.find('.cx-product-price span').first().text().trim()
-    const priceMatch = priceText.match(/([\d.,]+)/)
-    if (!priceMatch) return
-    // Formato VE: "1.432,18" → 1432.18
-    const price = parseFloat(
-      priceMatch[1].replace(/\./g, '').replace(',', '.')
-    )
-    if (isNaN(price)) return
-
-    // Link
-    const href =
-      card.find('a.cx-product-image-container').attr('href') ??
-      card.find('a.cx-product-name').attr('href') ??
-      ''
-    if (!href) return
-    const url = new URL(href, BASE).toString()
-
-    // Imagen
-    const img = card.find('cx-media img').attr('src') ?? null
-    const imageUrl = img ? new URL(img, BASE).toString() : null
-
-    // Categoría (a veces sirve como "marca" aproximada)
-    const category = card.find('.item-category').text().trim() || null
-
-    // Disponibilidad
-    const available = card.find('.out-of-stock-label').length === 0
-
-    results.push({
-      name,
-      brand: null,          // Gama no expone marca directamente en el grid
-      category,             // la guardamos por si te sirve
-      normalized: name.toLowerCase().trim(),
-      imageUrl,
-      price,
-      url,
-      available,
-    })
+  const params = new URLSearchParams({
+    fields: FIELDS,
+    query,
+    pageSize: '20',
+    lang: 'es',
+    curr: 'REF',
+    warehouse: 'S007',
   })
 
-  console.log(`Gama: ${results.length} productos`)
-  return results
+  const res = await fetch(`${API}?${params.toString()}`, {
+    headers: {
+      'User-Agent':
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126.0',
+      Accept: 'application/json',
+    },
+  })
+  if (!res.ok) throw new Error(`Gama error ${res.status}`)
+  const data = await res.json()
+
+  return (data.products ?? [])
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .filter((p: any) => p.price?.value != null)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .map((p: any) => ({
+      name: p.name,
+      brand: null,
+      normalized: p.name.toLowerCase().trim(),
+      imageUrl: p.images?.[0]?.url
+        ? new URL(p.images[0].url, BASE).toString()
+        : null,
+      price: p.price.value, // "Ref." = dólares referenciales
+      url: p.url
+        ? new URL(p.url, BASE).toString()
+        : `${BASE}/p/${p.seoName ?? p.code}`,
+      available: p.stock?.stockLevelStatus !== 'outOfStock',
+    }))
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .filter((p: any) => p.available)
 }

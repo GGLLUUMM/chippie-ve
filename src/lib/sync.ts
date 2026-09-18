@@ -3,6 +3,7 @@ import { fetchLocatel } from './scrapers/locatel'
 import { fetchFarmaciaSAAS } from './scrapers/farmaciassaas'
 import { fetchFarmago } from './scrapers/farmago'
 import { fetchGama } from './scrapers/gama'
+import { fetchFarmatodo } from './scrapers/farmatodo'
 
 const sources = [
   {
@@ -31,8 +32,15 @@ const sources = [
     name: 'Gama en Línea',
     baseUrl: 'https://gamaenlinea.com',
     fetcher: fetchGama,
+    currency: 'USD',
+  },
+  {
+    id: 'farmatodo-ve',
+    name: 'Farmatodo',
+    baseUrl: 'https://www.farmatodo.com.ve',
+    fetcher: fetchFarmatodo,
     currency: 'VES',
-  }
+  },
 ] as const
 
 async function ensureFreshRate(): Promise<number> {
