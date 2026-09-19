@@ -51,24 +51,67 @@ function buildProductUrl(itemId: number, url?: string | null): string {
 }
 
 function parsePrice(fullPrice: number): number {
-  // fullPrice appears to be in cents (e.g., 2450 = 24.50 VES)
   return fullPrice / 100
+}
+
+async function fetchImagesFromSearchPage(query: string): Promise<Map<number, string>> {
+  const { chromium } = await import('playwright')
+  const browser = await chromium.launch({ channel: 'chrome', headless: true })
+  const page = await browser.newPage()
+
+  const imageMap = new Map<number, string>()
+
+  try {
+    await page.goto(`${BASE}/buscar?product=${encodeURIComponent(query)}&departamento=Todos&filtros=`, {
+      waitUntil: 'domcontentloaded',
+      timeout: 15000,
+    })
+
+    await page.waitForSelector('[class*="product"] img, [class*="gallery"] img', { timeout: 10000 }).catch(() => {})
+    await page.waitForTimeout(1500)
+
+    const images = await page.$$eval('[class*="product"] img, [class*="gallery"] img, article img', (imgs: HTMLImageElement[]) => 
+      imgs
+        .filter(img => img.src.includes('lh3.googleusercontent.com') && img.alt)
+        .map(img => {
+          const itemMatch = img.src.match(/[?&]item=(\d+)/)
+          const alt = img.alt.trim()
+          return { src: img.src, itemId: itemMatch ? parseInt(itemMatch[1]) : null, alt }
+        })
+        .filter(i => i.itemId)
+    )
+
+    for (const img of images) {
+      if (!imageMap.has(img.itemId!)) {
+        imageMap.set(img.itemId!, img.src.replace(/=s\d+-rw/, '=s400-rw'))
+      }
+    }
+  } catch (e) {
+    console.warn('Farmatodo image fetch failed:', e)
+  } finally {
+    await browser.close()
+  }
+
+  return imageMap
 }
 
 export async function fetchFarmatodo(query: string) {
   try {
-    const hits = await fetchFromAlgolia(query)
+    const [hits, imageMap] = await Promise.all([
+      fetchFromAlgolia(query),
+      fetchImagesFromSearchPage(query),
+    ])
 
     const results = hits
       .filter((hit: FarmatodoHit) => hit.fullPrice && hit.fullPrice > 0)
       .map((hit: FarmatodoHit) => {
-        const rawImage = hit.listUrlImages?.[0] || null
+        const realImage = imageMap.get(hit.item) || hit.listUrlImages?.[0] || null
         
         return {
-          name: hit.description, // Use description for actual product name
+          name: hit.description,
           brand: hit.brand || hit.marca || null,
           normalized: hit.description.toLowerCase().trim(),
-          imageUrl: rawImage,
+          imageUrl: realImage,
           price: parsePrice(hit.fullPrice),
           url: buildProductUrl(hit.item, hit.url),
           available: hit.available !== false && hit.without_stock !== true,
@@ -76,7 +119,7 @@ export async function fetchFarmatodo(query: string) {
       })
       .filter((p) => p.name && p.price > 0)
 
-    console.log(`Farmatodo (Algolia): ${results.length} productos`)
+    console.log(`Farmatodo (Algolia+images): ${results.length} productos`)
     return results
   } catch (error) {
     console.error('Farmatodo scraper error:', error)

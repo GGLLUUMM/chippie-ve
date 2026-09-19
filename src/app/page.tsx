@@ -9,7 +9,7 @@ const stores = [
     name: 'Farmacias Saas',
     shortName: 'Saas',
     color: '#43B97F',
-    gradient: 'linear-gradient(135deg, #43B97FDD, #168F62AA)',
+    gradient: 'linear-gradient(135deg, #ebebeb, #8efa93f6)',
     icon: '💊',
     logo: '/logos/farmaciassaas.png',
   },
@@ -70,8 +70,8 @@ const features = [
   },
   {
     icon: '📱',
-    title: 'Funciona en móvil',
-    description: 'Diseño responsivo que se ve perfecto en cualquier dispositivo.',
+    title: 'App móvil (Proximamente)',
+    description: 'Proximamente al alcance de tu mano. Compara precios desde tu celular en cualquier momento.',
   },
   {
     icon: '🔒',
@@ -549,6 +549,9 @@ export default function Home() {
           </p>
           <p className="mt-2 text-white/30 text-xs">
             Los precios son referenciales y pueden variar. Verifica en la tienda antes de comprar.
+          </p>
+          <p className="mt-2 text-white/30 text-xs">
+            Developed with ❤️ by GGLLUUMM (Denzel Frias) Caracas. Venezuela 
           </p>
         </div>
       </footer>
