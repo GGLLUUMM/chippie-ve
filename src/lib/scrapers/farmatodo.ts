@@ -1,3 +1,5 @@
+import { getBrowser } from '../browser'
+
 const ALGOLIA_API = 'https://api-search.farmatodo.com/1/indexes/*/queries'
 const BASE = 'https://www.farmatodo.com.ve'
 
@@ -51,12 +53,11 @@ function buildProductUrl(itemId: number, url?: string | null): string {
 }
 
 function parsePrice(fullPrice: number): number {
-  return fullPrice / 100
+  return fullPrice
 }
 
 async function fetchImagesFromSearchPage(query: string): Promise<Map<number, string>> {
-  const { chromium } = await import('playwright')
-  const browser = await chromium.launch({ channel: 'chrome', headless: true })
+  const browser = await getBrowser()
   const page = await browser.newPage()
 
   const imageMap = new Map<number, string>()
@@ -88,8 +89,6 @@ async function fetchImagesFromSearchPage(query: string): Promise<Map<number, str
     }
   } catch (e) {
     console.warn('Farmatodo image fetch failed:', e)
-  } finally {
-    await browser.close()
   }
 
   return imageMap

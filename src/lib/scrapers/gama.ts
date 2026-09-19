@@ -1,4 +1,5 @@
-import { chromium } from 'playwright'
+
+import { getBrowser } from '../browser'
 
 const BASE = 'https://gamaenlinea.com'
 const CDN_BASE = 'https://egb2c.cl94ncbhsi-excelsior1-p1-public.model-t.cc.commerce.ondemand.com'
@@ -11,7 +12,9 @@ function cleanText(text: string): string {
 }
 
 export async function fetchGama(query: string) {
-  const browser = await chromium.launch({ channel: 'chrome', headless: true })
+
+  
+  const browser = await getBrowser()
   const page = await browser.newPage()
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -41,7 +44,6 @@ export async function fetchGama(query: string) {
   await page.waitForTimeout(2000)
 
   if (apiData?.products?.length > 0) {
-    await browser.close()
     return apiData.products
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .filter((p: any) => p.price?.value != null)
@@ -69,7 +71,7 @@ export async function fetchGama(query: string) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .filter((p: any) => p.available)
   }
-
+ 
   // Fallback: leer del DOM renderizado
   const results = await page.$$eval('cx-product-card, [class*="product-card"], article[class*="product"]', (cards) =>
     cards.map((card) => {
@@ -99,7 +101,6 @@ export async function fetchGama(query: string) {
     }).filter(Boolean)
   )
 
-  await browser.close()
   console.log(`Gama (Playwright): ${results.length} productos`)
   return results
 }

@@ -12,6 +12,10 @@ const storeThemes = {
   Farmago: { color: '#6D28D9', logo: '/logos/farmago.png', gradient: 'linear-gradient(90deg, #00CFE8, #6D28D9)' },
   'Gama en Línea': { color: '#F59E0B', logo: '/logos/gama.png' },
   Farmatodo: { color: '#E11D48', logo: '/logos/farmatodo.png' },
+  'Damasco': { color: '#B91C1C', logo: '/logos/damasco.png' },
+  'EPA': { color: '#169ef9', logo: '/logos/epa.png' },
+  'Canguro': { color: '#FACC15', logo: '/logos/canguro.png' },
+  'SoyTecno': { color: '#1a28f3', logo: '/logos/soytecno.png' },
 } as const
 
 function getStoreTheme(storeName: string) {
@@ -478,7 +482,7 @@ export default function BuscarClient() {
           <motion.h1 className="text-4xl md:text-5xl font-extrabold mb-4">
             Buscar en <span className="text-emerald-400">Chippie</span>
           </motion.h1>
-          <p className="text-xl text-gray-400 mb-10">Escribe un producto para comparar precios en todas las farmacias</p>
+          <p className="text-xl text-gray-400 mb-10">Escribe un producto para comparar precios en todas las tiendas</p>
           <SearchBar query="" onSearch={handleSearch} />
         </div>
       </main>

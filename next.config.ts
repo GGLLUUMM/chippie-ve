@@ -1,51 +1,25 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  reactCompiler: true,
   images: {
     remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'locatelvenezuela.vteximg.com.br',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: '**.vteximg.com.br',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'www.farmago.com.ve',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'gamaenlinea.com',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'egb2c.cl94ncbhsi-excelsior1-p1-public.model-t.cc.commerce.ondemand.com',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'www.farmaciasaas.com',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'lh3.googleusercontent.com',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'www.farmatodo.com.ve',
-        pathname: '/**',
-      },
+      { protocol: 'https', hostname: '**.locatel.com.ve' },
+      { protocol: 'https', hostname: '**.vteximg.com.br' },
+      { protocol: 'https', hostname: '**.vtexassets.com' },
+      { protocol: 'https', hostname: '**.farmaciasaas.com' },
+      { protocol: 'https', hostname: '**.farmago.com.ve' },
+      { protocol: 'https', hostname: '**.damascovzla.com' },
+      { protocol: 'https', hostname: '**.mercadolibre.com' },
+      { protocol: 'https', hostname: '**.mlstatic.com' },
+      { protocol: 'https', hostname: '**.googleusercontent.com' },
+      { protocol: 'https', hostname: '**.epaenlinea.com' },
+      { protocol: 'https', hostname: '**.cangurovenezuela.com' },
+      { protocol: 'https', hostname: '**.soytechno.com' },
+      { protocol: 'https', hostname: '**.farmatodo.com' },
+      { protocol: 'https', hostname: '**.farmatodo.com.ve' },
+      { protocol: 'https', hostname: '**.commerce.ondemand.com' },
     ],
   },
-};
+}
 
-export default nextConfig;
+export default nextConfig

@@ -40,7 +40,7 @@ export const viewport: Viewport = {
   maximumScale: 5,
 };
 
-export default function RootLayout({ children }: React.PropsWithChildren<{}>) {
+export default function RootLayout({ children }: React.PropsWithChildren<object>) {
   return (
     <html
       lang="es"

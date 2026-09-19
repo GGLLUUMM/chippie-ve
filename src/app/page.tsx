@@ -30,21 +30,53 @@ const stores = [
     logo: '/logos/farmago.png',
   },
   {
-    name: 'Gama en Línea',
-    shortName: 'Gama',
-    color: '#9B111E',
-    gradient: 'linear-gradient(135deg, #B21F32DD, #720817CC)',
-    icon: '🛒',
-    logo: '/logos/gama.png',
+    name: 'Damasco',
+    shortName: 'Damasco',
+    color: '#E60012',
+    gradient: 'linear-gradient(135deg, #E60012DD, #B3000ECC)',
+    icon: '🏠',
+    logo: '/logos/damasco.png',
   },
   {
-    name: 'Farmatodo',
-    shortName: 'Farmatodo',
-    color: '#173B8F',
-    gradient: 'linear-gradient(135deg, #244DA8DD, #0B205CCC)',
-    icon: '🧴',
-    logo: '/logos/farmatodo.png',
+    name: 'Canguro',
+    shortName: 'Canguro',
+    color: '#FF6B00',
+    gradient: 'linear-gradient(135deg, #FF6B00DD, #CC5500CC)',
+    icon: '🦘',
+    logo: '/logos/canguro.png',
   },
+  {
+    name: 'SoyTecno',
+    shortName: 'SoyTecno',
+    color: '#0066CC',
+    gradient: 'linear-gradient(135deg, #0066CCDD, #004499CC)',
+    icon: '💻',
+    logo: '/logos/soytecno.png',
+  },
+  {
+    name: 'EPA',
+    shortName: 'EPA',
+    color: '#00A651',
+    gradient: 'linear-gradient(135deg, #00A651DD, #00783BCC)',
+    icon: '🔨',
+    logo: '/logos/epa.png',
+  },
+  // {
+  //   name: 'Gama en Línea',
+  //   shortName: 'Gama',
+  //   color: '#9B111E',
+  //   gradient: 'linear-gradient(135deg, #B21F32DD, #720817CC)',
+  //   icon: '🛒',
+  //   logo: '/logos/gama.png',
+  // },
+  // {
+  //   name: 'Farmatodo',
+  //   shortName: 'Farmatodo',
+  //   color: '#173B8F',
+  //   gradient: 'linear-gradient(135deg, #244DA8DD, #0B205CCC)',
+  //   icon: '🧴',
+  //   logo: '/logos/farmatodo.png',
+  // },
 ]
 
 const features = [
@@ -545,7 +577,7 @@ export default function Home() {
       <footer className="relative py-12 px-6 border-t border-emerald-900">
         <div className="max-w-7xl mx-auto text-center">
           <p className="text-white/40 text-sm">
-            Chippie.ve - Comparador de precios independiente. No afiliado a ninguna farmacia.
+            Chippie.ve - Comparador de precios independiente. No afiliado a ninguna tienda.
           </p>
           <p className="mt-2 text-white/30 text-xs">
             Los precios son referenciales y pueden variar. Verifica en la tienda antes de comprar.

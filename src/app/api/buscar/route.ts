@@ -1,81 +1,54 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { syncQuery } from '@/lib/sync'
+import { ensureRate } from '@/lib/rate'
 
-const ITEMS_PER_PAGE = 50
+export const maxDuration = 120 // segundos permitidos (Vercel/Node)
 
-export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams
-  const query = searchParams.get('q')
-  const page = parseInt(searchParams.get('page') || '1')
-  const limit = parseInt(searchParams.get('limit') || ITEMS_PER_PAGE.toString())
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url)
+  const q = (searchParams.get('q') ?? '').trim()
+  const page = Math.max(1, parseInt(searchParams.get('page') ?? '1'))
+  const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') ?? '50')))
 
-  if (!query?.trim()) {
-    return NextResponse.json({ products: [], totalCount: 0, hasMore: false })
-  }
+  if (!q) return NextResponse.json({ products: [], totalCount: 0, hasMore: false })
 
-  try {
-    const rateRow = await prisma.rate.findFirst({
-      orderBy: { date: 'desc' },
+  const rate = await ensureRate()
+
+  const words = q.toLowerCase().split(/\s+/)
+
+  // Solo sincroniza en vivo si los datos tienen más de 6 horas
+  const newest = await prisma.price.findFirst({
+    where: { product: { AND: words.map((w) => ({ normalized: { contains: w } })) } },
+    orderBy: { capturedAt: 'desc' },
+  })
+  const stale = !newest || Date.now() - newest.capturedAt.getTime() > 6 * 60 * 60 * 1000
+  if (stale) await syncQuery(q)
+
+  const raw = await prisma.product.findMany({
+    where: { AND: words.map((w) => ({ normalized: { contains: w } })) },
+    include: { store: true, prices: { orderBy: { capturedAt: 'desc' }, take: 1 } },
+    take: 500,
+  })
+
+  const products = raw
+    .filter((p) => p.prices.length > 0)
+    .map((p) => {
+      const price = p.prices[0]
+      const amount = Number(price.amount)
+      return {
+        id: p.id, name: p.name, brand: p.brand, imageUrl: p.imageUrl, normalized: p.normalized,
+        store: { name: p.store.name },
+        prices: [{ amount, currency: price.currency, url: price.url, capturedAt: price.capturedAt }],
+        inVES: price.currency === 'USD' ? amount * rate : amount,
+      }
     })
+    .sort((a, b) => a.inVES - b.inVES)
 
-    const rate = rateRow ? Number(rateRow.rate) : 0
-    const words = query.toLowerCase().trim().split(/\s+/)
-
-    const skip = (page - 1) * limit
-    const take = limit + 1 // Fetch one extra to check if there are more
-
-    const raw = await prisma.product.findMany({
-      where: {
-        AND: words.map((word) => ({
-          normalized: { contains: word },
-        })),
-      },
-      include: {
-        store: true,
-        prices: {
-          orderBy: { capturedAt: 'desc' },
-          take: 1,
-        },
-      },
-      skip,
-      take,
-      orderBy: {
-        prices: {
-          _count: 'desc',
-        },
-      },
-    })
-
-    const hasMore = raw.length > limit
-    const products = hasMore ? raw.slice(0, limit) : raw
-
-    const results = products
-      .filter((product) => product.prices.length > 0)
-      .map((product) => {
-        const price = product.prices[0]
-        const amount = Number(price.amount)
-
-        const inVES =
-          price.currency === 'USD'
-            ? amount * rate
-            : amount
-
-        return {
-          ...product,
-          price,
-          inVES,
-        }
-      })
-      .filter((product) => Number.isFinite(product.inVES) && product.inVES > 0)
-      .sort((a, b) => a.inVES - b.inVES)
-
-    return NextResponse.json({
-      products: results,
-      totalCount: results.length + (page - 1) * limit,
-      hasMore,
-    })
-  } catch (error) {
-    console.error('Search API error:', error)
-    return NextResponse.json({ error: 'Error al buscar productos' }, { status: 500 })
-  }
+  const start = (page - 1) * limit
+  return NextResponse.json({
+    products: products.slice(start, start + limit),
+    totalCount: products.length,
+    hasMore: start + limit < products.length,
+  })
 }
