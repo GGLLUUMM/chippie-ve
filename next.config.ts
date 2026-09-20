@@ -18,6 +18,7 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: '**.farmatodo.com' },
       { protocol: 'https', hostname: '**.farmatodo.com.ve' },
       { protocol: 'https', hostname: '**.commerce.ondemand.com' },
+      { protocol: 'https', hostname: '**.cloudfront.net' },
     ],
   },
 }

@@ -11,7 +11,7 @@ const storeThemes = {
   Locatel: { color: '#009B77', logo: '/logos/locatel.png' },
   Farmago: { color: '#6D28D9', logo: '/logos/farmago.png', gradient: 'linear-gradient(90deg, #00CFE8, #6D28D9)' },
   'Gama en Línea': { color: '#F59E0B', logo: '/logos/gama.png' },
-  Farmatodo: { color: '#E11D48', logo: '/logos/farmatodo.png' },
+  Farmatodo: { color: '#1d5be1', logo: '/logos/farmatodo.png' },
   'Damasco': { color: '#B91C1C', logo: '/logos/damasco.png' },
   'EPA': { color: '#169ef9', logo: '/logos/epa.png' },
   'Canguro': { color: '#FACC15', logo: '/logos/canguro.png' },
@@ -507,7 +507,7 @@ export default function BuscarClient() {
           <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">
             Buscar en <span className="text-emerald-400">Chippie</span>
           </h1>
-          <p className="mt-2 text-gray-400">Compara precios en Farmacias Saas, Locatel, Farma Go, Gama y Farmatodo</p>
+          <p className="mt-2 text-gray-400">Compara precios en todas las tiendas disponibles</p>
         </motion.header>
 
         <SearchBar query={query} onSearch={handleSearch} />
@@ -528,7 +528,7 @@ export default function BuscarClient() {
               <motion.div className="flex flex-col items-center gap-6">
                 <LoadingWave />
                 <motion.p className="text-gray-400 text-center max-w-md">
-                  Buscando <span className="font-semibold text-emerald-300">“{query}”</span> en todas las farmacias...
+                  Buscando <span className="font-semibold text-emerald-300">“{query}”</span> en todas las tiendas...
                 </motion.p>
                 <motion.div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-5">
                   {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
