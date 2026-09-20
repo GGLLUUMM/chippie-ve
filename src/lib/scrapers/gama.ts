@@ -31,8 +31,8 @@ export async function fetchGama(query: string) {
   })
 
   await page.goto(`${BASE}/es/search/${encodeURIComponent(query)}`, {
-    waitUntil: 'networkidle',
-    timeout: 30000,
+    waitUntil: 'domcontentloaded',
+    timeout: 20000,
   })
 
   try {

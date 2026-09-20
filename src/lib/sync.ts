@@ -5,9 +5,6 @@ import { fetchFarmago } from './scrapers/farmago'
 import { fetchDamasco } from './scrapers/damasco'
 import { fetchGama } from './scrapers/gama'
 import { fetchFarmatodo } from './scrapers/farmatodo'
-import { fetchEPA } from './scrapers/epa'
-import { fetchCanguro } from './scrapers/canguro'
-import { fetchSoyTecno } from './scrapers/soytecno'
 import { closeBrowser } from './browser'
 
 const sources = [
@@ -17,9 +14,7 @@ const sources = [
   { id: 'damasco', name: 'Damasco', baseUrl: 'https://www.damascovzla.com', fetcher: fetchDamasco, currency: 'USD' },
   { id: 'gama', name: 'Gama en Línea', baseUrl: 'https://gamaenlinea.com', fetcher: fetchGama, currency: 'USD' },
   { id: 'farmatodo-ve', name: 'Farmatodo', baseUrl: 'https://www.farmatodo.com.ve', fetcher: fetchFarmatodo, currency: 'VES' },
-  { id: 'epa', name: 'EPA', baseUrl: 'https://ve.epaenlinea.com', fetcher: fetchEPA, currency: 'USD' },
-  { id: 'canguro', name: 'Canguro', baseUrl: 'https://cangurovenezuela.com', fetcher: fetchCanguro, currency: 'USD' },
-  { id: 'soytecno', name: 'SoyTecno', baseUrl: 'https://soytechno.com', fetcher: fetchSoyTecno, currency: 'USD' },
+  // EPA, Canguro y SoyTecno están suspendidos por mantenimiento o bloqueo anti-bot.
 ]
 
 function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {

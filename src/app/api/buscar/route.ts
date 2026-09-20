@@ -5,6 +5,8 @@ import { ensureRate } from '@/lib/rate'
 
 export const maxDuration = 120 // segundos permitidos (Vercel/Node)
 
+const suspendedStores = ['EPA', 'Canguro', 'SoyTecno']
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const q = (searchParams.get('q') ?? '').trim()
@@ -19,14 +21,22 @@ export async function GET(req: NextRequest) {
 
   // Solo sincroniza en vivo si los datos tienen más de 6 horas
   const newest = await prisma.price.findFirst({
-    where: { product: { AND: words.map((w) => ({ normalized: { contains: w } })) } },
+    where: {
+      product: {
+        AND: words.map((w) => ({ normalized: { contains: w } })),
+        store: { name: { notIn: suspendedStores } },
+      },
+    },
     orderBy: { capturedAt: 'desc' },
   })
   const stale = !newest || Date.now() - newest.capturedAt.getTime() > 6 * 60 * 60 * 1000
   if (stale) await syncQuery(q)
 
   const raw = await prisma.product.findMany({
-    where: { AND: words.map((w) => ({ normalized: { contains: w } })) },
+    where: {
+      AND: words.map((w) => ({ normalized: { contains: w } })),
+      store: { name: { notIn: suspendedStores } },
+    },
     include: { store: true, prices: { orderBy: { capturedAt: 'desc' }, take: 1 } },
     take: 500,
   })

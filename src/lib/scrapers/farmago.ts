@@ -1,18 +1,24 @@
 import * as cheerio from 'cheerio'
+import { fetchThroughBrowser } from '../browser'
 
 const BASE = 'https://www.farmago.com.ve'
 
 export async function fetchFarmago(query: string) {
-  const res = await fetch(
-    `${BASE}/website/search?search=${encodeURIComponent(query)}`,
-    {
+  const url = `${BASE}/website/search?search=${encodeURIComponent(query)}`
+  let html: string
+  try {
+    const res = await fetch(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36',
       },
-    }
-  )
-  if (!res.ok) throw new Error(`Farmago error ${res.status}`)
-  const html = await res.text()
+    })
+    if (!res.ok) throw new Error(`Farmago error ${res.status}`)
+    html = await res.text()
+  } catch {
+    const fallback = await fetchThroughBrowser(url)
+    if (fallback.status < 200 || fallback.status >= 300) throw new Error(`Farmago error ${fallback.status}`)
+    html = fallback.body
+  }
   const $ = cheerio.load(html)
   
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

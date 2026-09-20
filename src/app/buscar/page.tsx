@@ -13,10 +13,10 @@ const storeThemes = {
   'Gama en Línea': { color: '#F59E0B', logo: '/logos/gama.png' },
   Farmatodo: { color: '#1d5be1', logo: '/logos/farmatodo.png' },
   'Damasco': { color: '#B91C1C', logo: '/logos/damasco.png' },
-  'EPA': { color: '#169ef9', logo: '/logos/epa.png' },
-  'Canguro': { color: '#FACC15', logo: '/logos/canguro.png' },
-  'SoyTecno': { color: '#1a28f3', logo: '/logos/soytecno.png' },
+  // EPA, Canguro y SoyTecno están suspendidos: no entregan resultados fiables.
 } as const
+
+const suspendedStores = new Set(['EPA', 'Canguro', 'SoyTecno'])
 
 function getStoreTheme(storeName: string) {
   return storeThemes[storeName as keyof typeof storeThemes] ?? { color: '#374151', logo: null }
@@ -107,7 +107,7 @@ function ProductCard({ product, index, minPrice, maxPrice }: { product: Product;
       <div className="relative mb-4 h-40 w-full overflow-hidden rounded-xl bg-white/5">
         {product.imageUrl ? (
           <Image
-            src={product.imageUrl}
+            src={`/api/images?url=${encodeURIComponent(product.imageUrl)}`}
             alt={product.name}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
@@ -115,6 +115,7 @@ function ProductCard({ product, index, minPrice, maxPrice }: { product: Product;
             placeholder="blur"
             blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
             onError={(e) => { e.currentTarget.style.display = 'none' }}
+            unoptimized
           />
         ) : (
           <div className="flex h-full items-center justify-center text-5xl opacity-30">📦</div>
@@ -416,7 +417,9 @@ export default function BuscarClient() {
 
       const data: SearchResult = await res.json()
 
-      const pageProducts = uniqueProducts(data.products)
+      const pageProducts = uniqueProducts(
+        data.products.filter((product) => !suspendedStores.has(product.store.name)),
+      )
 
       if (isLoadMore) {
         setProducts((previousProducts) =>

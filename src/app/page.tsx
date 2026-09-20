@@ -37,30 +37,9 @@ const stores = [
     icon: '🏠',
     logo: '/logos/damasco.jpg',
   },
-  {
-    name: 'Canguro',
-    shortName: 'Canguro',
-    color: '#FF6B00',
-    gradient: 'linear-gradient(135deg, #c4b700, #e4e132)',
-    icon: '🦘',
-    logo: '/logos/canguro.jpg',
-  },
-  {
-    name: 'SoyTecno',
-    shortName: 'SoyTecno',
-    color: '#0066CC',
-    gradient: 'linear-gradient(135deg, #0066CCDD, #004499CC)',
-    icon: '💻',
-    logo: '/logos/soytecno.jpg',
-  },
-  {
-    name: 'EPA',
-    shortName: 'EPA',
-    color: '#00A651',
-    gradient: 'linear-gradient(135deg, #efff0efd, #6cc9ffcc)',
-    icon: '🔨',
-    logo: '/logos/epa.jpg',
-  },
+  // Canguro: suspendido por bloqueo de Cloudflare.
+  // SoyTecno: suspendido por bloqueo de Cloudflare.
+  // EPA: suspendido mientras su sitio permanece en mantenimiento.
   {
       name: 'Gama en Línea',
       shortName: 'Gama',
