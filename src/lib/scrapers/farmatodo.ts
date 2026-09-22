@@ -98,19 +98,13 @@ function buildProductUrl(hit: FarmatodoHit): string {
  * Extrae el item ID desde una URL de imagen de Google (lh3.googleusercontent.com).
  * Farmatodo adjunta el item como query param `item=<id>`.
  */
-function extractItemIdFromImage(src: string): number | null {
-  const match = src.match(/[?&]item=(\d+)/)
-  return match ? parseInt(match[1], 10) : null
-}
-
 /**
- * Scrapea la página de búsqueda para obtener imágenes que Algolia no expone.
- * Devuelve un Map<itemId, imageUrl>.
+ * Scrapea la página de búsqueda para obtener los datos visibles actualmente.
  */
 async function fetchImagesFromSearchPage(
   query: string,
-): Promise<Map<number, string>> {
-  const imageMap = new Map<number, string>()
+): Promise<Map<number, { imageUrl: string | null; price: number | null }>> {
+  const productMap = new Map<number, { imageUrl: string | null; price: number | null }>()
   let browser
 
   try {
@@ -130,25 +124,33 @@ async function fetchImagesFromSearchPage(
 
     await page.waitForTimeout(1500)
 
-    const images = await page.$$eval(
-      '[class*="product"] img, [class*="gallery"] img, article img',
-      (imgs: HTMLImageElement[]) =>
-        imgs
-          .filter((img) => img.src.includes('googleusercontent.com'))
-          .map((img) => ({
-            src: img.src,
-            itemId: (() => {
-              const m = img.src.match(/[?&]item=(\d+)/)
-              return m ? parseInt(m[1], 10) : null
-            })(),
-          }))
-          .filter((i) => i.itemId !== null),
+    const products = await page.$$eval(
+      'a[href*="/producto/"]',
+      (links: HTMLAnchorElement[]) =>
+        links.map((link) => {
+          const itemId = link.href.match(/\/producto\/(\d+)/)?.[1]
+          const container = link.closest('article, [class*="product"], [class*="card"]')
+          const text = container?.textContent ?? link.textContent ?? ''
+          const priceText = text.match(/Bs\.\s*([\d.]+,\d{2})/)?.[1]
+          const price = priceText
+            ? Number(priceText.replace(/\./g, '').replace(',', '.'))
+            : null
+          const image = container?.querySelector<HTMLImageElement>('img[src*="googleusercontent.com"]')
+
+          return {
+            itemId: itemId ? Number(itemId) : null,
+            imageUrl: image?.src ?? null,
+            price: Number.isFinite(price) ? price : null,
+          }
+        }).filter((product) => product.itemId !== null),
     )
 
-    for (const img of images) {
-      if (img.itemId !== null && !imageMap.has(img.itemId)) {
-        // Aumentamos la resolución de la miniatura a 400px
-        imageMap.set(img.itemId, img.src.replace(/=s\d+-rw/, '=s400-rw'))
+    for (const product of products) {
+      if (product.itemId !== null && !productMap.has(product.itemId)) {
+        productMap.set(product.itemId, {
+          imageUrl: product.imageUrl?.replace(/=s\d+-rw/, '=s400-rw') ?? null,
+          price: product.price,
+        })
       }
     }
 
@@ -157,7 +159,35 @@ async function fetchImagesFromSearchPage(
     console.warn('[Farmatodo] Error obteniendo imágenes del DOM:', e)
   }
 
-  return imageMap
+  return productMap
+}
+
+async function fetchCurrentPrices(
+  hits: FarmatodoHit[],
+): Promise<Map<number, number>> {
+  const prices = new Map<number, number>()
+
+  await Promise.all(
+    hits.map(async (hit) => {
+      if (!hit.item || !hit.url) return
+
+      try {
+        const res = await fetch(`${BASE}/producto/${hit.url}`, {
+          headers: { Accept: 'text/html' },
+        })
+        if (!res.ok) return
+
+        const html = await res.text()
+        const match = html.match(/"priceCurrency":"VES","price":([\d.]+)/)
+        const price = match ? Number(match[1]) : NaN
+        if (Number.isFinite(price) && price > 0) prices.set(hit.item, price)
+      } catch {
+        // El precio de Algolia sigue siendo un fallback válido si el detalle falla.
+      }
+    }),
+  )
+
+  return prices
 }
 
 /**
@@ -176,6 +206,7 @@ export async function fetchFarmatodo(query: string) {
       fetchFromAlgolia(query),
       fetchImagesFromSearchPage(query),
     ])
+    const currentPrices = await fetchCurrentPrices(hits)
 
     let fromAlgolia = 0
     let fromDom = 0
@@ -198,9 +229,9 @@ export async function fetchFarmatodo(query: string) {
           fromAlgolia++
         } else {
           // Prioridad 2: imagen scrapeada del DOM, emparejada por item ID
-          const domImage = imageMap.get(hit.item)
-          if (domImage) {
-            imageUrl = domImage
+          const domProduct = imageMap.get(hit.item)
+          if (domProduct?.imageUrl) {
+            imageUrl = domProduct.imageUrl
             fromDom++
           } else {
             withoutImage++
@@ -218,7 +249,7 @@ export async function fetchFarmatodo(query: string) {
           brand: hit.brand || hit.marca || null,
           normalized: hit.description.toLowerCase().trim(),
           imageUrl,
-          price: hit.fullPrice,
+          price: currentPrices.get(hit.item) ?? imageMap.get(hit.item)?.price ?? hit.fullPrice,
           url,
           available:
             hit.available !== false && hit.without_stock !== true,
