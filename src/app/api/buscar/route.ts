@@ -6,6 +6,7 @@ import { ensureRate } from '@/lib/rate'
 export const maxDuration = 120 // segundos permitidos (Vercel/Node)
 
 const suspendedStores = ['EPA', 'Canguro', 'SoyTecno']
+const activeStores = ['Locatel', 'Farmacia SAAS', 'Farmago', 'Damasco', 'Gama en Línea', 'Farmatodo']
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
@@ -19,17 +20,22 @@ export async function GET(req: NextRequest) {
 
   const words = q.toLowerCase().split(/\s+/)
 
-  // Solo sincroniza en vivo si los datos tienen más de 6 horas
-  const newest = await prisma.price.findFirst({
-    where: {
-      product: {
-        AND: words.map((w) => ({ normalized: { contains: w } })),
-        store: { name: { notIn: suspendedStores } },
-      },
-    },
-    orderBy: { capturedAt: 'desc' },
-  })
-  const stale = !newest || Date.now() - newest.capturedAt.getTime() > 6 * 60 * 60 * 1000
+  const newestByStore = await Promise.all(
+    activeStores.map((storeName) =>
+      prisma.price.findFirst({
+        where: {
+          product: {
+            AND: words.map((w) => ({ normalized: { contains: w } })),
+            store: { name: storeName },
+          },
+        },
+        orderBy: { capturedAt: 'desc' },
+      }),
+    ),
+  )
+  const stale = newestByStore.some(
+    (newest) => !newest || Date.now() - newest.capturedAt.getTime() > 6 * 60 * 60 * 1000,
+  )
   if (stale) await syncQuery(q)
 
   const raw = await prisma.product.findMany({
