@@ -56,6 +56,14 @@ const stores = [
       icon: '🧴',
       logo: '/logos/farmatodo.png',
   },
+  {
+      name: 'Tiendas Daka',
+      shortName: 'Daka',
+      color: '#ebe715',
+      gradient: 'linear-gradient(135deg, #ecf010, #0560f3cc)',
+      icon: '🛍️',
+      logo: '/logos/daka.png',
+  },
 ]
 
 const features = [

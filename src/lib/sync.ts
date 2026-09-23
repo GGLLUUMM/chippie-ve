@@ -5,6 +5,7 @@ import { fetchFarmago } from './scrapers/farmago'
 import { fetchDamasco } from './scrapers/damasco'
 import { fetchGama } from './scrapers/gama'
 import { fetchFarmatodo } from './scrapers/farmatodo'
+import { fetchDaka } from './scrapers/daka'
 import { closeBrowser } from './browser'
 
 const sources = [
@@ -14,6 +15,7 @@ const sources = [
   { id: 'damasco', name: 'Damasco', baseUrl: 'https://www.damascovzla.com', fetcher: fetchDamasco, currency: 'USD' },
   { id: 'gama', name: 'Gama en Línea', baseUrl: 'https://gamaenlinea.com', fetcher: fetchGama, currency: 'USD' },
   { id: 'farmatodo-ve', name: 'Farmatodo', baseUrl: 'https://www.farmatodo.com.ve', fetcher: fetchFarmatodo, currency: 'VES' },
+  { id: 'daka', name: 'Tiendas Daka', baseUrl: 'https://tiendasdaka.com', fetcher: fetchDaka, currency: 'USD' },
   // EPA, Canguro y SoyTecno están suspendidos por mantenimiento o bloqueo anti-bot.
 ]
 

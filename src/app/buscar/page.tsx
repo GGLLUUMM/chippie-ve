@@ -13,6 +13,7 @@ const storeThemes = {
   'Gama en Línea': { color: '#F59E0B', logo: '/logos/gama.png' },
   Farmatodo: { color: '#1d5be1', logo: '/logos/farmatodo.png' },
   'Damasco': { color: '#B91C1C', logo: '/logos/damasco.jpg' },
+  'Tiendas Daka': { color: '#fde400', logo: '/logos/daka.png' },
   // EPA, Canguro y SoyTecno están suspendidos: no entregan resultados fiables.
 } as const
 

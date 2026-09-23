@@ -6,7 +6,7 @@ import { ensureRate } from '@/lib/rate'
 export const maxDuration = 120 // segundos permitidos (Vercel/Node)
 
 const suspendedStores = ['EPA', 'Canguro', 'SoyTecno']
-const activeStores = ['Locatel', 'Farmacia SAAS', 'Farmago', 'Damasco', 'Gama en Línea', 'Farmatodo']
+const activeStores = ['Locatel', 'Farmacia SAAS', 'Farmago', 'Damasco', 'Gama en Línea', 'Farmatodo', 'Tiendas Daka']
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
