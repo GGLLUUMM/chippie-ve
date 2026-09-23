@@ -33,9 +33,29 @@ export async function GET(req: NextRequest) {
       }),
     ),
   )
+  const gamaProductsWithLatestPrice = await prisma.product.findMany({
+    where: {
+      AND: words.map((w) => ({ normalized: { contains: w } })),
+      store: { name: 'Gama en Línea' },
+    },
+    include: { prices: { orderBy: { capturedAt: 'desc' }, take: 1 } },
+  })
+
   const stale = newestByStore.some(
-    (newest) => !newest || Date.now() - newest.capturedAt.getTime() > 6 * 60 * 60 * 1000,
-  )
+    (newest, index) => {
+      if (!newest || Date.now() - newest.capturedAt.getTime() > 6 * 60 * 60 * 1000) {
+        return true
+      }
+
+      // Repair Gama prices saved by the old scraper (/es/p/<slug>), which is
+      // not a valid product route and would otherwise remain fresh forever.
+      const isGama = activeStores[index] === 'Gama en Línea'
+      return isGama && !/\/es\/[^/]+\/p\/[^/]+$/.test(newest.url)
+    },
+  ) || gamaProductsWithLatestPrice.some((product) => {
+    const latestPrice = product.prices[0]
+    return latestPrice && !/\/es\/[^/]+\/p\/[^/]+$/.test(latestPrice.url)
+  })
   if (stale) await syncQuery(q)
 
   const raw = await prisma.product.findMany({

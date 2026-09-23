@@ -11,21 +11,50 @@ function cleanText(text: string): string {
     .trim()
 }
 
+function normalizeForSearch(text: string): string {
+  return text
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+}
+
+function buildProductUrl(product: { seoName?: string | null; code?: string | null; url?: string | null }): string | null {
+  if (product.seoName && product.code) {
+    return `${BASE}/es/${product.seoName}/p/${product.code}`
+  }
+
+  if (!product.url) return null
+
+  try {
+    const url = new URL(product.url, BASE)
+    if (url.pathname.includes('/p/') && !url.pathname.startsWith('/es/')) {
+      url.pathname = `/es${url.pathname}`
+    }
+    return url.toString()
+  } catch {
+    return null
+  }
+}
+
 export async function fetchGama(query: string) {
 
-  
   const browser = await getBrowser()
   const page = await browser.newPage()
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let apiData: any = null
+  let searchUrl: string | null = null
 
   page.on('response', async (res) => {
     const url = res.url()
     if (url.includes('/products/search') && res.status() === 200) {
       try {
         const json = await res.json()
-        if (json.products?.length > 0) apiData = json
+        if (json.products?.length > 0) {
+          searchUrl ??= url
+          apiData = json
+        }
       } catch { }
     }
   })
@@ -43,8 +72,34 @@ export async function fetchGama(query: string) {
 
   await page.waitForTimeout(2000)
 
+  // The storefront requests only 12 items per page. Ask OCC for the full
+  // result set so generic searches do not silently lose products.
+  if (searchUrl) {
+    try {
+      const fullResults = await page.evaluate(async (url) => {
+        const requestUrl = new URL(url)
+        requestUrl.searchParams.set('page', '0')
+        requestUrl.searchParams.set('pageSize', '100')
+        const response = await fetch(requestUrl)
+        return response.ok ? response.json() : null
+      }, searchUrl)
+
+      if (fullResults?.products?.length > 0) apiData = fullResults
+    } catch (error) {
+      console.warn('Gama: no se pudo ampliar la búsqueda OCC', error)
+    }
+  }
+
   if (apiData?.products?.length > 0) {
+    const searchTerms = normalizeForSearch(query).split(/\s+/).filter(Boolean)
+
     return apiData.products
+      // OCC can return loosely related products for generic terms such as "agua".
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .filter((p: any) => {
+        const name = normalizeForSearch(cleanText(p.name ?? ''))
+        return searchTerms.every((term) => name.includes(term))
+      })
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .filter((p: any) => p.price?.value != null)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -64,7 +119,7 @@ export async function fetchGama(query: string) {
           normalized: cleanText(p.name).toLowerCase().trim(),
           imageUrl,
           price: p.price.value,
-          url: p.url ? new URL(p.url, BASE).toString() : `${BASE}/p/${p.seoName ?? p.code}`,
+          url: buildProductUrl(p),
           available: p.stock?.stockLevelStatus !== 'outOfStock',
         }
       })
