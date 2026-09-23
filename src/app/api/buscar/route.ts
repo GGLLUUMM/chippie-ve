@@ -47,6 +47,14 @@ export async function GET(req: NextRequest) {
         return true
       }
 
+      if (
+        activeStores[index] === 'Farmatodo' &&
+        newest.currency === 'VES' &&
+        Number(newest.amount) / rate < 0.5
+      ) {
+        return true
+      }
+
       // Repair Gama prices saved by the old scraper (/es/p/<slug>), which is
       // not a valid product route and would otherwise remain fresh forever.
       const isGama = activeStores[index] === 'Gama en Línea'
@@ -69,6 +77,12 @@ export async function GET(req: NextRequest) {
 
   const products = raw
     .filter((p) => p.prices.length > 0)
+    .filter((p) => {
+      const price = p.prices[0]
+      return p.store.name !== 'Farmatodo' ||
+        price.currency !== 'VES' ||
+        Number(price.amount) / rate >= 0.5
+    })
     .map((p) => {
       const price = p.prices[0]
       const amount = Number(price.amount)

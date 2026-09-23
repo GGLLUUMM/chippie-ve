@@ -16,6 +16,11 @@ interface FarmatodoHit {
   marca: string
   available: boolean
   without_stock: boolean
+  availableOnline?: boolean
+  outofstore?: boolean
+  valid?: boolean
+  stock?: number
+  totalStock?: number
   url: string | null
   urlCanonical?: string | null
 }
@@ -169,10 +174,10 @@ async function fetchCurrentPrices(
 
   await Promise.all(
     hits.map(async (hit) => {
-      if (!hit.item || !hit.url) return
+      if (!hit.item) return
 
       try {
-        const res = await fetch(`${BASE}/producto/${hit.url}`, {
+        const res = await fetch(`${BASE}/producto/${hit.item}`, {
           headers: { Accept: 'text/html' },
         })
         if (!res.ok) return
@@ -217,7 +222,10 @@ export async function fetchFarmatodo(query: string) {
       .filter((hit: FarmatodoHit) => {
         // Descartamos productos sin precio o marcados como no disponibles
         if (!hit.fullPrice || hit.fullPrice <= 0) return false
-        if (hit.available === false || hit.without_stock === true) return false
+          const stock = hit.totalStock ?? hit.stock
+          if (stock == null || stock <= 0) return false
+          if (hit.available === false || hit.availableOnline === false) return false
+          if (hit.without_stock === true || hit.outofstore === true || hit.valid === false) return false
         return true
       })
       .map((hit: FarmatodoHit) => {
@@ -252,7 +260,12 @@ export async function fetchFarmatodo(query: string) {
           price: currentPrices.get(hit.item) ?? imageMap.get(hit.item)?.price ?? hit.fullPrice,
           url,
           available:
-            hit.available !== false && hit.without_stock !== true,
+            hit.available !== false &&
+            hit.availableOnline !== false &&
+            hit.without_stock !== true &&
+            hit.outofstore !== true &&
+            hit.valid !== false &&
+            (hit.totalStock ?? hit.stock ?? 0) > 0,
         }
       })
       .filter((p) => p.name && p.price > 0)
