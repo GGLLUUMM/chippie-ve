@@ -1,208 +1,153 @@
 import { getBrowser } from '../browser'
 
-const BASE = 'https://tiendasdaka.com'
-
-function cleanText(text: string): string {
-  return text
-    .replace(/<[^>]*>/g, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-}
-
-function parsePrice(priceText: string): number {
-  const cleaned = priceText
-    .replace(/[^\d,]/g, '')
-    .replace(/\./g, '')
-    .replace(',', '.')
-  const amount = parseFloat(cleaned)
-  return isNaN(amount) ? 0 : amount
-}
-
-function extractProductsFromNextData(html: string): Array<{id: string, name: string, brand: string | null, price: number, currency: string}> {
-  const products: Array<{id: string, name: string, brand: string | null, price: number, currency: string}> = []
-  
-  // Strategy 1: Look for GA4 ecommerce items in __next_f scripts
-  // Format: "item_list_name":"...","items":[{...}]
-  const itemListRegex = /"item_list_name"\s*:\s*"[^"]*"[^}]*"items"\s*:\s*(\[[\s\S]*?\])/g
-  let match
-  while ((match = itemListRegex.exec(html)) !== null) {
-    try {
-      const items = JSON.parse(match[1])
-      for (const item of items) {
-        if (item.item_id && item.item_name && item.price) {
-          products.push({
-            id: item.item_id,
-            name: item.item_name,
-            brand: item.item_brand || null,
-            price: parseFloat(item.price),
-            currency: item.currency || 'USD',
-          })
-        }
-      }
-    } catch {
-      // Ignore parse errors
-    }
-  }
-
-  // Strategy 2: Look for product data in __NEXT_DATA__ script
-  const nextDataMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/)
-  if (nextDataMatch) {
-    try {
-      const nextData = JSON.parse(nextDataMatch[1])
-      // Navigate through the Next.js data structure to find products
-      const pageProps = nextData?.props?.pageProps
-      if (pageProps) {
-        // Search recursively for product arrays
-        // The embedded Next.js payload is intentionally untyped and only used as a fallback.
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        function findProducts(obj: any) {
-          if (!obj || typeof obj !== 'object') return
-          if (Array.isArray(obj)) {
-            for (const item of obj) {
-              if (item && typeof item === 'object' && item.item_id && item.item_name && item.price) {
-                products.push({
-                  id: item.item_id,
-                  name: item.item_name,
-                  brand: item.item_brand || null,
-                  price: parseFloat(item.price),
-                  currency: item.currency || 'USD',
-                })
-              }
-              findProducts(item)
-            }
-          } else {
-            for (const key of Object.keys(obj)) {
-              findProducts(obj[key])
-            }
-          }
-        }
-        findProducts(pageProps)
-      }
-    } catch {
-      // Ignore
-    }
-  }
-
-  // Deduplicate by id
-  const seen = new Set<string>()
-  return products.filter(p => {
-    if (seen.has(p.id)) return false
-    seen.add(p.id)
-    return true
-  })
-}
+const BASE = 'https://daka.tiendasdaka.com'
 
 export async function fetchDaka(query: string) {
   const browser = await getBrowser()
   const page = await browser.newPage()
 
   try {
-    const searchUrl = `${BASE}/ve/results/${encodeURIComponent(query)}?q=${encodeURIComponent(query)}`
-    console.log(`Daka: fetching ${searchUrl}`)
-    
-    // Navigate with a realistic user agent and headers
+    // 1. Configuración para parecer un navegador real
     await page.setExtraHTTPHeaders({
-      'Accept-Language': 'es-VE,es;q=0.9,en;q=0.8',
-      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-    })
-    
-    await page.goto(searchUrl, {
-      waitUntil: 'domcontentloaded',
-      timeout: 30000,
+      'User-Agent':
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+      'Accept-Language': 'es-VE,es;q=0.9,en-US;q=0.8,en;q=0.7',
     })
 
-    // Wait for Next.js to hydrate and render products
-    await page.waitForTimeout(5000)
+    // 2. Navegación a la página de resultados
+    const searchUrl = `${BASE}/ve/results/${encodeURIComponent(query)}?q=${encodeURIComponent(query)}`
+    console.log(`[Daka] Buscando en: ${searchUrl}`)
 
-    // Get the full HTML to extract Next.js embedded data
-    const html = await page.content()
-    
-    // Extract products from Next.js embedded JSON data
-    const extractedProducts = extractProductsFromNextData(html)
-    console.log(`Daka: extracted ${extractedProducts.length} products from Next.js data`)
-
-    if (extractedProducts.length > 0) {
-      // Get DOM data for images and URLs
-      const domProducts = await page.$$eval(
-        '[data-testid="products-list"] li, li.product-card-item, [class*="product-card-item"]',
-        (cards) =>
-          cards.map((card) => {
-            const linkEl = card.querySelector('a[href*="/products/"]')
-            const imgEl = card.querySelector('img')
-            const href = linkEl?.getAttribute('href') ?? ''
-            const img = imgEl?.getAttribute('src') ?? imgEl?.getAttribute('data-src') ?? null
-            return { href, img }
-          })
-      )
-
-      // Merge extracted data with DOM data
-      const results = extractedProducts.map((product, index) => {
-        const domData = domProducts[index] || {}
-        return {
-          name: product.name,
-          brand: product.brand,
-          normalized: product.name.toLowerCase().trim(),
-          imageUrl: domData.img ? new URL(domData.img, BASE).toString() : null,
-          price: product.price,
-          url: domData.href ? new URL(domData.href, BASE).toString() : null,
-          available: true,
-        }
-      }).filter(p => p.name && p.price > 0)
-
-      console.log(`Daka: ${results.length} productos`)
-      return results
+    try {
+      await page.goto(searchUrl, { waitUntil: 'networkidle', timeout: 30000 })
+    } catch {
+      console.log('[Daka] Networkidle timeout, intentando continuar...')
     }
 
-    // Fallback: DOM scraping
-    console.log('Daka: falling back to DOM scraping')
-    const results = await page.$$eval(
-      '[data-testid="products-list"] li, li.product-card-item, [class*="product-card-item"]',
-      (cards) =>
-        cards.map((card) => {
-          // Name selector: line-clamp-2 with font-open-poppins
-          const nameEl = card.querySelector(
-            '[class*="line-clamp-2"], [class*="font-open-poppins"], h3, h4, a[href*="/products/"]'
-          )
-          // Brand selector: font-semibold text-gray
-          const brandEl = card.querySelector('[class*="font-semibold"][class*="text-"]')
-          // USD Price: data-testid="price"
-          const priceUsdEl = card.querySelector('[data-testid="price"]')
-          // VES Price: text-neutral-500 container
-          const priceVesEl = card.querySelector('[class*="text-neutral-500"]')
-          // Link
-          const linkEl = card.querySelector('a[href*="/products/"]')
-          // Image
-          const imgEl = card.querySelector('img')
+    // Espera adicional para renderizado de JS
+    await new Promise((resolve) => setTimeout(resolve, 2000))
 
-          const name = cleanText(nameEl?.textContent?.trim() ?? '')
-          const brand = cleanText(brandEl?.textContent?.trim() ?? '')
-          const priceUsdText = priceUsdEl?.textContent?.trim() ?? ''
-          const priceVesText = priceVesEl?.textContent?.trim() ?? ''
-          const href = linkEl?.getAttribute('href') ?? ''
-          const img = imgEl?.getAttribute('src') ?? imgEl?.getAttribute('data-src') ?? null
-
-          const priceUsd = parsePrice(priceUsdText)
-          const priceVes = parsePrice(priceVesText)
-          const price = priceUsd > 0 ? priceUsd : priceVes
-
-          if (!name || !price || isNaN(price)) return null
-
-          return {
-            name,
-            brand: brand || null,
-            normalized: name.toLowerCase().trim(),
-            imageUrl: img ? new URL(img, BASE).toString() : null,
-            price,
-            url: href ? new URL(href, BASE).toString() : null,
-            available: true,
+    // --- Scroll automático optimizado ---
+    await page.evaluate(async () => {
+      await new Promise<void>((resolve) => {
+        let totalHeight = 0
+        const distance = 500
+        const timer = setInterval(() => {
+          const scrollHeight = document.body.scrollHeight
+          window.scrollBy(0, distance)
+          totalHeight += distance
+          if (totalHeight >= scrollHeight || totalHeight > 4000) {
+            clearInterval(timer)
+            resolve()
           }
-        }).filter(Boolean)
+        }, 300)
+      })
+    })
+
+    // 3. Extracción ultra-flexible
+    const products = await page.evaluate(() => {
+      type RawProduct = {
+        name: string
+        priceText: string
+        url: string
+        imageUrl: string
+        available: boolean
+      }
+
+      const results: RawProduct[] = []
+
+      // Convertimos el NodeList en un Array para poder usar .filter()
+      const allElements = Array.from(document.querySelectorAll<HTMLElement>('*'))
+
+      const priceElements = allElements.filter(
+        (el) => el.children.length === 0 && /Bs\.?\s?[\d.,]+/i.test(el.innerText)
+      )
+
+      priceElements.forEach((priceEl) => {
+        // Subimos al ancestro más cercano que parezca una tarjeta
+        const card = priceEl.closest<HTMLElement>('div, section, li, a')
+        if (!card) return
+
+        const nameEl = card.querySelector<HTMLElement>(
+          'h3, [class*="name"], [class*="title"], span[class*="product"], a'
+        )
+        const linkEl =
+          card.querySelector<HTMLAnchorElement>('a') ||
+          (card.tagName === 'A' ? (card as HTMLAnchorElement) : null)
+        const imgEl = card.querySelector<HTMLImageElement>('img')
+
+        if (nameEl && linkEl) {
+          const priceText = priceEl.innerText
+          const priceMatch = priceText.match(/[\d.,]+/)
+
+          if (priceMatch) {
+            results.push({
+              name: nameEl.innerText.trim(),
+              priceText: priceMatch[0],
+              url: linkEl.getAttribute('href') || '',
+              imageUrl:
+                imgEl?.getAttribute('src') ||
+                imgEl?.getAttribute('data-src') ||
+                '',
+              available: true,
+            })
+          }
+        }
+      })
+
+      // Eliminar duplicados basados en el nombre
+      const seen = new Set<string>()
+      return results.filter((p) => {
+        const dup = seen.has(p.name)
+        seen.add(p.name)
+        return !dup
+      })
+    })
+
+    console.log(
+      `[Daka] Éxito: ${products.length} productos encontrados via DOM Flexible`
     )
 
-    console.log(`Daka: ${results.length} productos`)
-    return results
+    // 5. Formateo final y limpieza de precios
+    return products
+      .map((p) => {
+        // Limpieza de precio ultra-robusta
+        let cleanPrice = p.priceText.replace(/[^\d,.]/g, '')
+
+        // Formato latino: 1.200,50 -> 1200.50
+        if (cleanPrice.includes(',') && cleanPrice.includes('.')) {
+          cleanPrice = cleanPrice.replace(/\./g, '').replace(',', '.')
+        } else if (cleanPrice.includes(',')) {
+          // Si solo hay coma, asumimos separador decimal
+          cleanPrice = cleanPrice.replace(',', '.')
+        }
+
+        const finalPrice = parseFloat(cleanPrice)
+
+        return {
+          name: p.name,
+          brand: null as string | null,
+          normalized: p.name.toLowerCase().trim(),
+          imageUrl: p.imageUrl
+            ? p.imageUrl.startsWith('http')
+              ? p.imageUrl
+              : new URL(p.imageUrl, BASE).toString()
+            : null,
+          price: finalPrice,
+          url: p.url.startsWith('http')
+            ? p.url
+            : new URL(p.url, BASE).toString(),
+          available: p.available,
+        }
+      })
+      .filter((p) => {
+        if (!p.name || isNaN(p.price)) {
+          return false
+        }
+        return true
+      })
   } catch (error) {
-    console.error('Daka scraper error:', error)
+    console.error(`[Daka] Error crítico de scraping: ${error}`)
     return []
   } finally {
     await page.close().catch(() => {})

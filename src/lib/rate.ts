@@ -6,11 +6,19 @@ const BCV_URL = 'https://www.bcv.org.ve/'
 const RATE_MAX_AGE_MS = 24 * 60 * 60 * 1000
 
 function parseRate(text: string): number {
-  const normalized = text.replace(/\s/g, '').replace(/\./g, '').replace(',', '.')
-  const rate = Number.parseFloat(normalized)
+  // Extraemos solo la parte numérica (incluyendo coma y punto)
+  // Esto elimina "USD", espacios y cualquier otro texto
+  const numericMatch = text.match(/[\d,\.]+/);
+  if (!numericMatch) {
+    throw new Error(`No se pudo encontrar un valor numérico en el texto del BCV: "${text}"`);
+  }
+
+  const rawValue = numericMatch[0];
+  const normalized = rawValue.replace(/\s/g, '').replace(/\./g, '').replace(',', '.');
+  const rate = Number.parseFloat(normalized);
 
   if (!Number.isFinite(rate) || rate < 1) {
-    throw new Error(`No se pudo parsear la tasa del BCV: "${text}"`)
+    throw new Error(`No se pudo parsear la tasa del BCV: "${text}"`);
   }
 
   return rate
