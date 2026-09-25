@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 const stores = [
   {
@@ -255,121 +255,368 @@ function FeatureCard({ feature, index }: { feature: typeof features[0]; index: n
   )
 }
 
-function HeroSection() {
+function HowItWorksModal({
+  isOpen,
+  onClose,
+}: {
+  isOpen: boolean
+  onClose: () => void
+}) {
+  // Cerrar con Escape
+  useEffect(() => {
+    if (!isOpen) return
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', handleKey)
+    // Bloquear scroll del body mientras está abierta
+    document.body.style.overflow = 'hidden'
+    return () => {
+      window.removeEventListener('keydown', handleKey)
+      document.body.style.overflow = ''
+    }
+  }, [isOpen, onClose])
+
+  const steps = [
+    {
+      icon: '🔍',
+      title: 'Escribe lo que buscas',
+      description:
+        'Escribe el nombre del producto que quieres comprar (ej. "nevera", "acetaminofén", "shampoo"). No necesitas registrarte ni crear cuenta.',
+      color: '#10b981',
+    },
+    {
+      icon: '⚡',
+      title: 'Buscamos en todas las tiendas',
+      description:
+        'En segundos, consultamos simultáneamente los catálogos de Farmacias Saas, Locatel, Farma Go, Damasco, Gama, Farmatodo y Tiendas Daka.',
+      color: '#22d3ee',
+    },
+    {
+      icon: '💰',
+      title: 'Comparamos precios',
+      description:
+        'Verás todos los productos encontrados ordenados por precio, con la tienda de origen, la imagen y el precio actualizado en bolívares.',
+      color: '#a78bfa',
+    },
+    {
+      icon: '🔗',
+      title: 'Compra en la tienda oficial',
+      description:
+        'Al hacer clic en "Comprar", te llevamos directamente a la página del producto en la tienda oficial. Sin comisiones ni intermediarios.',
+      color: '#f59e0b',
+    },
+  ]
+
   return (
-    <motion.section className="relative min-h-screen flex items-center justify-center px-6 overflow-hidden">
-      <FloatingParticles />
-      
-      <motion.div
-        className="relative z-10 max-w-5xl mx-auto text-center py-20"
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: 'easeOut' }}
-      >
-        <motion.span
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-emerald-300"
-          style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.3)' }}
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.3, type: 'spring', stiffness: 200 }}
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Backdrop con blur */}
+          <motion.div
+            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            onClick={onClose}
+            aria-hidden="true"
+          />
+
+          {/* Contenedor de la modal */}
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 pointer-events-none">
+            <motion.div
+              className="pointer-events-auto relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl border border-emerald-700/50 bg-gradient-to-br from-emerald-950 via-black to-emerald-950 shadow-2xl shadow-emerald-900/50"
+              initial={{ opacity: 0, scale: 0.92, y: 30 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.92, y: 30 }}
+              transition={{ type: 'spring', stiffness: 260, damping: 24 }}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="how-it-works-title"
+            >
+              {/* Resplandor decorativo */}
+              <div className="pointer-events-none absolute -top-24 left-1/2 h-48 w-48 -translate-x-1/2 rounded-full bg-emerald-500/20 blur-3xl" />
+
+              {/* Botón de cerrar */}
+              <motion.button
+                type="button"
+                onClick={onClose}
+                aria-label="Cerrar"
+                className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-emerald-800 bg-black/40 text-emerald-300 backdrop-blur-sm transition hover:border-emerald-500 hover:bg-emerald-900/50 hover:text-white"
+                whileHover={{ scale: 1.1, rotate: 90 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </motion.button>
+
+              {/* Contenido */}
+              <div className="relative p-6 sm:p-8">
+                {/* Encabezado */}
+                <motion.div
+                  className="text-center mb-8"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1, duration: 0.4 }}
+                >
+                  <motion.div
+                    className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl text-4xl"
+                    style={{
+                      background:
+                        'linear-gradient(135deg, #10b98133, #05966933)',
+                      border: '1px solid #10b98155',
+                    }}
+                    animate={{ rotate: [0, 5, -5, 0] }}
+                    transition={{ duration: 3, repeat: Infinity }}
+                  >
+                    💡
+                  </motion.div>
+                  <h2
+                    id="how-it-works-title"
+                    className="text-2xl sm:text-3xl font-extrabold text-white"
+                  >
+                    ¿Cómo funciona{' '}
+                    <span className="text-emerald-400">Chippie</span>?
+                  </h2>
+                  <p className="mt-2 text-sm text-white/60">
+                    Comparar precios nunca fue tan fácil. Solo 4 pasos.
+                  </p>
+                </motion.div>
+
+                {/* Pasos */}
+                <div className="space-y-4">
+                  {steps.map((step, index) => (
+                    <motion.div
+                      key={step.title}
+                      className="group relative flex gap-4 rounded-2xl border border-emerald-900/70 bg-black/30 p-4 transition-colors hover:border-emerald-700 hover:bg-emerald-950/40"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{
+                        delay: 0.15 + index * 0.1,
+                        duration: 0.4,
+                        ease: 'easeOut',
+                      }}
+                    >
+                      {/* Número de paso */}
+                      <div className="flex flex-col items-center">
+                        <motion.div
+                          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-2xl"
+                          style={{
+                            background: `linear-gradient(135deg, ${step.color}33, ${step.color}11)`,
+                            border: `1px solid ${step.color}55`,
+                          }}
+                          whileHover={{ scale: 1.1, rotate: 5 }}
+                          transition={{ type: 'spring', stiffness: 300 }}
+                        >
+                          {step.icon}
+                        </motion.div>
+                        {index < steps.length - 1 && (
+                          <div className="mt-2 w-px flex-1 bg-gradient-to-b from-emerald-700/60 to-transparent" />
+                        )}
+                      </div>
+
+                      {/* Texto */}
+                      <div className="flex-1 pt-1">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="text-xs font-bold uppercase tracking-wider"
+                            style={{ color: step.color }}
+                          >
+                            Paso {index + 1}
+                          </span>
+                        </div>
+                        <h3 className="mt-1 font-bold text-white">
+                          {step.title}
+                        </h3>
+                        <p className="mt-1 text-sm leading-relaxed text-white/60">
+                          {step.description}
+                        </p>
+                      </div>
+
+                      {/* Barra lateral animada al hover */}
+                      <motion.div
+                        className="absolute left-0 top-0 h-full w-1 rounded-l-2xl"
+                        style={{ background: step.color }}
+                        initial={{ scaleY: 0 }}
+                        whileHover={{ scaleY: 1 }}
+                        transition={{ duration: 0.2 }}
+                      />
+                    </motion.div>
+                  ))}
+                </div>
+
+                {/* Botón de acción */}
+                <motion.div
+                  className="mt-8 flex flex-col sm:flex-row gap-3"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6, duration: 0.4 }}
+                >
+                  <Link
+                    href="/buscar"
+                    className="group relative flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 px-6 py-4 font-semibold text-white overflow-hidden transition-all hover:from-emerald-500 hover:to-emerald-600 shadow-lg shadow-emerald-600/30"
+                  >
+                    <span className="relative z-10">Probar ahora →</span>
+                    <motion.span
+                      className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                    />
+                  </Link>
+                  <motion.button
+                    type="button"
+                    onClick={onClose}
+                    className="flex-1 rounded-xl border border-emerald-800 bg-black/40 px-6 py-4 font-semibold text-white backdrop-blur-sm transition hover:border-emerald-600 hover:bg-emerald-950/50"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    Entendido
+                  </motion.button>
+                </motion.div>
+              </div>
+            </motion.div>
+          </div>
+        </>
+      )}
+    </AnimatePresence>
+  )
+}
+
+function HeroSection() {
+  const [showHowItWorks, setShowHowItWorks] = useState(false)
+
+  return (
+    <>
+      <motion.section className="relative min-h-screen flex items-center justify-center px-6 overflow-hidden">
+        <FloatingParticles />
+        
+        <motion.div
+          className="relative z-10 max-w-5xl mx-auto text-center py-20"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: 'easeOut' }}
         >
           <motion.span
-            className="w-2 h-2 rounded-full"
-            style={{ background: '#10b981' }}
-            animate={{ scale: [1, 1.3, 1], opacity: [1, 0.5, 1] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-          />
-          Comparador de precios de tiendas en Venezuela
-        </motion.span>
-
-        <motion.h1
-          className="mt-6 text-5xl md:text-7xl lg:text-8xl font-extrabold leading-tight"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.6 }}
-        >
-          <span className="bg-gradient-to-r from-white via-emerald-100 to-white bg-clip-text text-transparent">
-            Chippie
-            <span className="text-emerald-400">.ve</span>
-          </span>
-        </motion.h1>
-
-        <motion.p
-          className="mt-6 text-lg md:text-xl lg:text-2xl text-white/80 max-w-3xl mx-auto leading-relaxed"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.6 }}
-        >
-          Compara precios de los mismos productos en <span className="font-semibold text-emerald-300"> Diferentes tiendas </span>
-          y encuéntralo al  <span className="font-semibold text-emerald-300"> mejor precio</span>. Sin registrarte. Sin letra pequeña.
-        </motion.p>
-
-        <motion.div
-          className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.6 }}
-        >
-          <Link
-            href="/buscar"
-            className="group relative inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 px-8 py-4 text-lg font-semibold text-white overflow-hidden hover:from-emerald-500 hover:to-emerald-600 transition-all shadow-lg shadow-emerald-600/30"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-emerald-300"
+            style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.3)' }}
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.3, type: 'spring', stiffness: 200 }}
           >
-            <span className="relative z-10">Buscar productos →</span>
             <motion.span
-              className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity"
+              className="w-2 h-2 rounded-full"
+              style={{ background: '#10b981' }}
+              animate={{ scale: [1, 1.3, 1], opacity: [1, 0.5, 1] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
             />
-          </Link>
-          
-          <motion.button
-            className="relative inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-800 bg-emerald-950/50 px-8 py-4 text-lg font-semibold text-white backdrop-blur-sm hover:border-emerald-600 hover:bg-emerald-950 transition-all"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            Comparador de precios de tiendas en Venezuela
+          </motion.span>
+
+          <motion.h1
+            className="mt-6 text-5xl md:text-7xl lg:text-8xl font-extrabold leading-tight"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.6 }}
           >
-            <motion.svg
-              className="w-5 h-5 text-emerald-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
+            <span className="bg-gradient-to-r from-white via-emerald-100 to-white bg-clip-text text-transparent">
+              Chippie
+              <span className="text-emerald-400">.ve</span>
+            </span>
+          </motion.h1>
+
+          <motion.p
+            className="mt-6 text-lg md:text-xl lg:text-2xl text-white/80 max-w-3xl mx-auto leading-relaxed"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.6 }}
+          >
+            Compara precios de los mismos productos en <span className="font-semibold text-emerald-300"> Diferentes tiendas </span>
+            y encuéntralo al  <span className="font-semibold text-emerald-300"> mejor precio</span>. Sin registrarte. Sin letra pequeña.
+          </motion.p>
+
+          <motion.div
+            className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.6 }}
+          >
+            <Link
+              href="/buscar"
+              className="group relative inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 px-8 py-4 text-lg font-semibold text-white overflow-hidden hover:from-emerald-500 hover:to-emerald-600 transition-all shadow-lg shadow-emerald-600/30"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </motion.svg>
-            Cómo funciona
-          </motion.button>
+              <span className="relative z-10">Buscar productos →</span>
+              <motion.span
+                className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity"
+              />
+            </Link>
+            
+            <motion.button
+              onClick={() => setShowHowItWorks(true)}
+              className="relative inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-800 bg-emerald-950/50 px-8 py-4 text-lg font-semibold text-white backdrop-blur-sm hover:border-emerald-600 hover:bg-emerald-950 transition-all"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <motion.svg
+                className="w-5 h-5 text-emerald-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </motion.svg>
+              Cómo funciona
+            </motion.button>
+          </motion.div>
+
+          <motion.div
+            className="mt-16 flex items-center justify-center gap-8 text-white/50 text-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8, duration: 0.6 }}
+          >
+            <div className="flex items-center gap-2">
+              <motion.div className="w-2 h-2 rounded-full" style={{ background: '#10b981' }} animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 1, repeat: Infinity, delay: 0 }} />
+              <span>Precios en tiempo real</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <motion.div className="w-2 h-2 rounded-full" style={{ background: '#10b981' }} animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 1, repeat: Infinity, delay: 0.2 }} />
+              <span>las tiendas principales de tu día a día</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <motion.div className="w-2 h-2 rounded-full" style={{ background: '#10b981' }} animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 1, repeat: Infinity, delay: 0.4 }} />
+              <span>Sin registro requerido</span>
+            </div>
+          </motion.div>
         </motion.div>
 
         <motion.div
-          className="mt-16 flex items-center justify-center gap-8 text-white/50 text-sm"
+          className="absolute bottom-10 left-1/2 -translate-x-1/2"
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8, duration: 0.6 }}
+          animate={{ opacity: 1, y: [0, 10, 0] }}
+          transition={{ delay: 1.2, duration: 1.5, repeat: Infinity }}
         >
-          <div className="flex items-center gap-2">
-            <motion.div className="w-2 h-2 rounded-full" style={{ background: '#10b981' }} animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 1, repeat: Infinity, delay: 0 }} />
-            <span>Precios en tiempo real</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <motion.div className="w-2 h-2 rounded-full" style={{ background: '#10b981' }} animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 1, repeat: Infinity, delay: 0.2 }} />
-            <span>las tiendas principales de tu día a día</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <motion.div className="w-2 h-2 rounded-full" style={{ background: '#10b981' }} animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 1, repeat: Infinity, delay: 0.4 }} />
-            <span>Sin registro requerido</span>
-          </div>
+          <motion.svg className="w-6 h-6 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+          </motion.svg>
         </motion.div>
-      </motion.div>
+      </motion.section>
 
-      <motion.div
-        className="absolute bottom-10 left-1/2 -translate-x-1/2"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1, y: [0, 10, 0] }}
-        transition={{ delay: 1.2, duration: 1.5, repeat: Infinity }}
-      >
-        <motion.svg className="w-6 h-6 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-        </motion.svg>
-      </motion.div>
-    </motion.section>
+      <HowItWorksModal
+        isOpen={showHowItWorks}
+        onClose={() => setShowHowItWorks(false)}
+      />
+    </>
   )
 }
 
