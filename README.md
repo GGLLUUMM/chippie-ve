@@ -31,11 +31,7 @@
 
 | Landing | Resultados |
 |---------|------------|
-| ![Landing](docs/landing.png) | ![Resultados](docs/results.png) |
-
-| Modal "Cómo funciona" |
-|----------------------|-------------|
-| ![Modal](docs/modal.png) | 
+| ![Landing](public/landing.png) | ![Resultados](public/results.png) |
 
 ---
 
