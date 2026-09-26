@@ -33,9 +33,9 @@
 |---------|------------|
 | ![Landing](docs/landing.png) | ![Resultados](docs/results.png) |
 
-| Modal "Cómo funciona" | Vista móvil |
+| Modal "Cómo funciona" |
 |----------------------|-------------|
-| ![Modal](docs/modal.png) | ![Mobile](docs/mobile.png) |
+| ![Modal](docs/modal.png) | 
 
 ---
 
